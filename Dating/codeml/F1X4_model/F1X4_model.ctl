@@ -1,0 +1,17 @@
+seqfile = ADH_alignment_all.phy   * sequence data filename
+outfile = F1X4_model.out   * main result file name
+treefile = tree_PAML_all_unrooted_grouped.nwk
+noisy = 3      * 0,1,2,3,9: how much rubbish on the screen
+verbose = 0      * 1:detailed output
+runmode = 0     * 0: user tree; -2:pairwise
+seqtype = 1      * 1:codons
+CodonFreq = 1      * 0:equal, 1:F1X4, 2:F3X4, 3:F61
+model = 2      *
+NSsites = 0      *
+icode = 0      * 0:universal code
+fix_kappa = 1      * 1:kappa fixed, 0:kappa to be estimated
+kappa = 1      * initial or fixed kappa
+fix_omega = 0      * 1:omega fixed, 0:omega to be estimated
+omega = 0.5    * initial omega value
+cleandata = 1
+*ndata = 1
