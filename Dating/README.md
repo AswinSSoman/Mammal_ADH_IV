@@ -1,0 +1,1 @@
+To estimate the timing of the loss of ADH7 in branches with premature stop codons, we followed the method described in Meredith et al. 2009 Molecular decay of the tooth gene Enamelin (ENAM) mirrors the loss of enamel in the fossil record of placental mammals. PLoS Genet. 5, e1000634.
