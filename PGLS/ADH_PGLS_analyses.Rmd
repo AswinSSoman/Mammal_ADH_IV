@@ -1,0 +1,152 @@
+---
+title: "PGLS - ADH Loss & Diet"
+date: "1/24/2020"
+output: html_document
+---
+
+Load libraries:
+```{r}
+library(ape)
+library(geiger)
+library(nlme)
+library(phytools)
+library(phylolm)
+library(ggplot2)
+library(reshape2)
+library(wesanderson)
+```
+
+
+Read in data and tree
+```{r}
+adh_tree <- read.tree("Mammal_ADH_tree.nwk")
+adh_data <- read.csv("ADH_Diet_PGLS.tsv", header = TRUE, sep = "\t", row.names = 1)
+```
+
+Check if tree names and data names match:
+```{r}
+name.check(adh_tree, adh_data)
+```
+
+
+## phyloglm analyses:
+
+Prep data by creating binary column for gene status (pseudo = 1, functional = 0)
+```{r}
+adh_data$ADH7_binary <- 0
+adh_data$ADH7_binary[adh_data$ADH7 == 'pseudo'] <- 1
+```
+
+### Testing hypothesis that herbivory predicts gene loss:
+
+* Method logistic_MPLE
+```{r}
+plant_MPLE <- phyloglm(ADH7_binary ~ perc_plant, data = adh_data, phy = adh_tree, method = "logistic_MPLE", btol = 20)
+summary(plant_MPLE)
+coef(plant_MPLE)
+vcov(plant_MPLE)
+```
+
+* Method logistic_IG10
+```{r}
+plant_IG10 <- phyloglm(ADH7_binary ~ perc_plant, data = adh_data, phy = adh_tree, method = "logistic_IG10", btol = 10)
+summary(plant_IG10)
+# coef(plant_IG10)
+vcov(plant_IG10)
+```
+
+predict lines for plot:
+```{r}
+cc_plant_MPLE <- coef(plant_MPLE)
+cc_plant_IG10 <- coef(plant_IG10)
+```
+
+plot:
+```{r}
+plot(adh_data$ADH7_binary ~ adh_data$perc_plant)
+curve_plant_MPLE <- curve(plogis(cc_plant_MPLE[1]+cc_plant_MPLE[2]*x),col="red",add=TRUE)
+curve_plant_IG10 <- curve(plogis(cc_plant_IG10[1]+cc_plant_IG10[2]*x),col="red",add=TRUE)
+
+```
+
+In ggplot:
+Prep data
+```{r}
+df_plant_curve <- data.frame(X=curve_plant_MPLE$x, MPLE=curve_plant_MPLE$y, IG10=curve_plant_IG10$y)
+df_plant_curve_melted <- melt(df_plant_curve, id.vars = "X")
+names(df_plant_curve_melted)[2] <- "Method"
+```
+Plot:
+```{r}
+plot <- ggplot(data = adh_data, aes(x=perc_plant, y = ADH7_binary)) + geom_count() + theme_classic() + xlab("Vegetative material in diet (%)") + ylab("ADH7") +
+scale_y_continuous(breaks = c(0.00,1.00), labels = c("Retention","Loss")) + theme(axis.title.y = element_text(face = 'italic')) + labs(size = "Number of species") + scale_size_continuous(breaks = c(1,5,9,13))
+plot + geom_line(data = df_plant_curve_melted, aes(x=X, y=value, col=Method)) + scale_color_manual(values = c(wes_palette("Zissou1")[3], wes_palette("Zissou1")[1])) + geom_label(label = "slope = 0.045\np < 0.004", x=75, y=0.73, size = 3, fill = wes_palette("Zissou1")[1]) + geom_label(label = "slope = 0.042\np = 0.005", x=85, y=0.44, size = 3, fill = wes_palette("Zissou1")[3])
+#add labels for coefficients of the two models
+```
+
+### Testing hypothesis that frugivory predicts gene retention:
+Prep data by creating binary column (pseudo = 1, functional = 0)
+```{r}
+adh_data$ADH7_binary <- 0
+adh_data$ADH7_binary[adh_data$ADH7 == 'pseudo'] <- 1
+```
+
+```{r}
+fruit_MPLE <- phyloglm(ADH7_binary ~ perc_fruit_nectar, data = adh_data, phy = adh_tree, method = "logistic_MPLE", btol = 20)
+summary(fruit_MPLE)
+coef(fruit_MPLE)
+vcov(fruit_MPLE)
+```
+
+```{r}
+fruit_IG10 <- phyloglm(ADH7_binary ~ perc_fruit_nectar, data = adh_data, phy = adh_tree, method = "logistic_IG10", btol = 10)
+summary(fruit_IG10)
+coef(fruit_IG10)
+vcov(fruit_IG10)
+```
+
+Predict lines for plot:
+```{r}
+cc_fruit_MPLE <- coef(fruit_MPLE)
+cc_fruit_IG10 <- coef(fruit_IG10)
+```
+plot:
+```{r}
+plot(adh_data$ADH7_binary ~ adh_data$perc_fruit_nectar)
+curve_fruit_MPLE <- curve(plogis(cc_fruit_MPLE[1]+cc_fruit_MPLE[2]*x),col="red",add=TRUE)
+curve_fruit_IG10 <- curve(plogis(cc_fruit_IG10[1]+cc_fruit_IG10[2]*x),col="red",add=TRUE)
+```
+
+In ggplot:
+Prep data
+```{r}
+df_fruit_curve <- data.frame(X=curve_fruit_MPLE$x, MPLE=curve_fruit_MPLE$y, IG10=curve_fruit_IG10$y)
+df_fruit_curve_melted <- melt(df_fruit_curve, id.vars = "X")
+names(df_fruit_curve_melted)[2] <- "Method"
+```
+Plot:
+```{r}
+plot <- ggplot(data = adh_data, aes(x=perc_fruit_nectar, y = ADH7_binary)) + geom_count() + theme_classic() + xlab("Fruit and/or nectar in diet (%)") + ylab("ADH7") +
+scale_y_continuous(breaks = c(0.00,1.00), labels = c("Retention","Loss")) + theme(axis.title.y = element_text(face = 'italic')) + labs(size = "Number of species") + scale_size_continuous(breaks = c(2,4,6,9))
+plot + geom_line(data = df_fruit_curve_melted, aes(x=X, y=value, col=Method)) + scale_color_manual(values = c(wes_palette("Zissou1")[3], wes_palette("Zissou1")[1])) + geom_label(label = "slope = 0.000\np = 1.000", x=75, y=0.73, size = 3, fill = wes_palette("Zissou1")[1]) + geom_label(label = "slope = 0.000\np = 1.000", x=85, y=0.44, size = 3, fill = wes_palette("Zissou1")[3])
+```
+
+
+PGLS analyses: (not included in paper)
+* Are number of missense mutations and being an herbivore correlated?
+```{r}
+pglsModel <- gls(mutations_stop ~ herbivore, correlation = corBrownian(phy = adh_tree), data = adh_data, method = "ML")
+summary(pglsModel)
+coef(pglsModel)
+anova(pglsModel)
+```
+
+Are number of missense mutations and percent fruit/nectar in diet correlated? (not included in paper)
+```{r}
+fruit_pglsModel <- gls(mutations_stop ~ perc_fruit_nectar, correlation = corBrownian(phy = adh_tree), data = adh_data, method = "ML")
+summary(fruit_pglsModel)
+coef(fruit_pglsModel)
+anova(fruit_pglsModel)
+```
+
+
