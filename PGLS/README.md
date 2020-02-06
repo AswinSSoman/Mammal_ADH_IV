@@ -1,0 +1,1 @@
+To test whether ADH7 was more likely to be retained in frugivorous/nectarivorous lineages or lost in lineages with diets not containing these resources, we performed phylogenetic logistic regression analyses using two different methods in the R package phylolm
