@@ -1,6 +1,6 @@
-seqfile = ADH_alignment_all.phy   * sequence data filename
+seqfile = ADH_PAML_alignment.phy   * sequence data filename
 outfile = F1X4_model.out   * main result file name
-treefile = tree_PAML_all_unrooted_grouped.nwk
+treefile = ADH_PAML_tree_unrooted.nwk
 noisy = 3      * 0,1,2,3,9: how much rubbish on the screen
 verbose = 0      * 1:detailed output
 runmode = 0     * 0: user tree; -2:pairwise
